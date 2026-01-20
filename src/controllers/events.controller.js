@@ -1,4 +1,6 @@
 import Event from "../models/event.model.js";
+import notificationQueue from "../queues/notification.queue.js";
+
 
 export const ingestEvent = async (req,res) => {
     try {
@@ -13,6 +15,10 @@ export const ingestEvent = async (req,res) => {
         const event = await Event.create({
             type,
             payload,
+        });
+
+        await notificationQueue.add("process-event",{
+            eventId:event._id.toString(),
         });
 
         return res.status(201).json({
